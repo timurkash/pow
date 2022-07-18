@@ -13,3 +13,13 @@ sudo apt-get install fortunes fortune-mod
 ```bash
 make start
 ```
+
+## Why HashCash?
+
+- coz it is used in Bitcoin
+- cos it is popular
+- coz it does not involve money
+- coz easy addition of complexity
+
+Inside the SHA256 is used 
+
