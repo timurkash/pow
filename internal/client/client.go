@@ -9,6 +9,7 @@ import (
 	"github.com/timurkash/pow/internal/pkg/pow"
 	"github.com/timurkash/pow/internal/pkg/protocol"
 	"io"
+	"log"
 	"net"
 	"strings"
 	"time"
@@ -21,7 +22,7 @@ func Run(ctx context.Context, address string) error {
 		return err
 	}
 
-	fmt.Println("connected to", address)
+	log.Println("connected to", address)
 	defer conn.Close()
 
 	// client will send new request every 5 seconds endlessly
@@ -30,11 +31,11 @@ func Run(ctx context.Context, address string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("quote result:")
-		fmt.Println("======================")
-		fmt.Println(strings.ReplaceAll(message, "世界", "\n"))
-		fmt.Println("======================")
-		fmt.Println()
+		log.Println("quote result:")
+		log.Println("======================")
+		log.Println(strings.ReplaceAll(message, "世界", "\n"))
+		log.Println("======================")
+		log.Println()
 		time.Sleep(10 * time.Second)
 	}
 }
@@ -61,14 +62,14 @@ func HandleConnection(ctx context.Context, readerConn io.Reader, writerConn io.W
 	if err != nil {
 		return "", fmt.Errorf("err parse hashCash: %w", err)
 	}
-	fmt.Println("got hashCash:", hashCash)
+	log.Println("got hashCash:", hashCash)
 
 	conf := ctx.Value("config").(*config.Config)
 	hashCash, err = hashCash.ComputeHashCash(conf.HashCashMaxIterations)
 	if err != nil {
 		return "", fmt.Errorf("err compute hashCash: %w", err)
 	}
-	fmt.Println("hashCash computed:", hashCash)
+	log.Println("hashCash computed:", hashCash)
 	byteData, err := json.Marshal(hashCash)
 	if err != nil {
 		return "", fmt.Errorf("err marshal hashCash: %w", err)
@@ -81,7 +82,7 @@ func HandleConnection(ctx context.Context, readerConn io.Reader, writerConn io.W
 	if err != nil {
 		return "", fmt.Errorf("err send request: %w", err)
 	}
-	fmt.Println("challenge sent to server")
+	log.Println("challenge sent to server")
 
 	msgStr, err = readConnMsg(reader)
 	if err != nil {

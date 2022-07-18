@@ -1,3 +1,7 @@
+test:
+	go clean --testcache
+	go test ./...
+
 start-server:
 	go run cmd/server/main.go
 

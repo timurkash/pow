@@ -11,6 +11,7 @@ import (
 	"github.com/timurkash/pow/internal/pkg/config"
 	"github.com/timurkash/pow/internal/pkg/pow"
 	"github.com/timurkash/pow/internal/pkg/protocol"
+	"log"
 	"math/rand"
 	"net"
 	"os/exec"
@@ -51,7 +52,7 @@ func Run(ctx context.Context, address string) error {
 	}
 	// Close the listener when the application closes.
 	defer listener.Close()
-	fmt.Println("listening", listener.Addr())
+	log.Println("listening", listener.Addr())
 	for {
 		// Listen for an incoming connection.
 		conn, err := listener.Accept()
@@ -64,7 +65,7 @@ func Run(ctx context.Context, address string) error {
 }
 
 func handleConnection(ctx context.Context, conn net.Conn) {
-	fmt.Println("new client:", conn.RemoteAddr())
+	log.Println("new client:", conn.RemoteAddr())
 	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
@@ -72,18 +73,18 @@ func handleConnection(ctx context.Context, conn net.Conn) {
 	for {
 		req, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("err read connection:", err)
+			log.Println("err read connection:", err)
 			return
 		}
 		msg, err := ProcessRequest(ctx, req, conn.RemoteAddr().String())
 		if err != nil {
-			fmt.Println("err process request:", err)
+			log.Println("err process request:", err)
 			return
 		}
 		if msg != nil {
 			err := sendMsg(*msg, conn)
 			if err != nil {
-				fmt.Println("err send message:", err)
+				log.Println("err send message:", err)
 			}
 		}
 	}
@@ -100,7 +101,7 @@ func ProcessRequest(ctx context.Context,
 	case protocol.Quit:
 		return nil, ErrQuit
 	case protocol.RequestChallenge:
-		fmt.Printf("client %s requests challenge\n", clientInfo)
+		log.Printf("client %s requests challenge\n", clientInfo)
 		conf := ctx.Value("config").(*config.Config)
 		clock := ctx.Value("clock").(Clock)
 		cache := ctx.Value("cache").(Cache)
@@ -136,8 +137,8 @@ func ProcessRequest(ctx context.Context,
 		}
 		phrase = bytes.Trim(phrase, "\n")
 		phrase = bytes.ReplaceAll(phrase, []byte("\n"), []byte("世界"))
-		fmt.Println(string(phrase))
-		fmt.Printf("client %s requests resource with payload %s\n", clientInfo, msg.Payload)
+		log.Println(string(phrase))
+		log.Printf("client %s requests resource with payload %s\n", clientInfo, msg.Payload)
 		// parse client's solution
 		var hashCash pow.HashCashData
 		if err = json.Unmarshal([]byte(msg.Payload), &hashCash); err != nil {
@@ -181,7 +182,7 @@ func ProcessRequest(ctx context.Context,
 			return nil, fmt.Errorf("invalid hashCash")
 		}
 		//get random quote
-		fmt.Printf("client %s succesfully computed hashCash %s\n", clientInfo, msg.Payload)
+		log.Printf("client %s succesfully computed hashCash %s\n", clientInfo, msg.Payload)
 		msg := protocol.Message{
 			Header:  protocol.ResponseResource,
 			Payload: string(phrase),

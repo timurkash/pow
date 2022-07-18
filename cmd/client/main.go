@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"github.com/timurkash/pow/internal/client"
 	"github.com/timurkash/pow/internal/pkg/config"
+	"log"
 )
 
 func main() {
-	fmt.Println("start client")
+	log.Println("start client")
 
 	configInst, err := config.Load("config/config.json")
 	if err != nil {
-		fmt.Println("error load config:", err)
+		log.Println("error load config:", err)
 		return
 	}
 
@@ -23,6 +24,6 @@ func main() {
 
 	err = client.Run(ctx, address)
 	if err != nil {
-		fmt.Println("client error:", err)
+		log.Fatalln("client error:", err)
 	}
 }

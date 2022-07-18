@@ -3,20 +3,22 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"math/rand"
+	"time"
+
 	"github.com/timurkash/pow/internal/pkg/cache"
 	"github.com/timurkash/pow/internal/pkg/clock"
 	"github.com/timurkash/pow/internal/pkg/config"
 	"github.com/timurkash/pow/internal/server"
-	"math/rand"
-	"time"
 )
 
 func main() {
-	fmt.Println("start server")
+	log.Println("start server")
 
 	configInst, err := config.Load("config/config.json")
 	if err != nil {
-		fmt.Println("error load config:", err)
+		log.Fatalln("error load config:", err)
 		return
 	}
 
@@ -26,7 +28,7 @@ func main() {
 
 	cacheInst, err := cache.InitRedisCache(ctx, configInst.CacheHost, configInst.CachePort)
 	if err != nil {
-		fmt.Println("error init cache:", err)
+		log.Fatalln("error init cache:", err)
 		return
 	}
 	ctx = context.WithValue(ctx, "cache", cacheInst)
@@ -36,6 +38,6 @@ func main() {
 	serverAddress := fmt.Sprintf("%s:%d", configInst.ServerHost, configInst.ServerPort)
 	err = server.Run(ctx, serverAddress)
 	if err != nil {
-		fmt.Println("server error:", err)
+		log.Fatalln("server error:", err)
 	}
 }

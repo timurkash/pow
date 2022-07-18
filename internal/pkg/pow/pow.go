@@ -43,7 +43,7 @@ func (h HashCashData) ComputeHashCash(maxIterations int) (HashCashData, error) {
 	for h.Counter <= maxIterations || maxIterations <= 0 {
 		header := h.Stringify()
 		hash := sha256Hash(header)
-		//fmt.Println(header, hash)
+		//log.Println(header, hash)
 		if IsHashCorrect(hash, h.ZerosCount) {
 			return h, nil
 		}

@@ -20,13 +20,13 @@ type inMemoryValue struct {
 	Expiration int64
 }
 
-//func InitInMemoryCache(clock Clock) *InMemoryCache {
-//	return &InMemoryCache{
-//		dataMap: make(map[int]inMemoryValue, 0),
-//		lock:    &sync.Mutex{},
-//		clock:   clock,
-//	}
-//}
+func InitInMemoryCache(clock Clock) *InMemoryCache {
+	return &InMemoryCache{
+		dataMap: make(map[int]inMemoryValue, 0),
+		lock:    &sync.Mutex{},
+		clock:   clock,
+	}
+}
 
 func (c *InMemoryCache) Add(key int, expiration int64) error {
 	c.lock.Lock()
