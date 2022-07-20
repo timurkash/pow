@@ -15,7 +15,6 @@ import (
 	"math/rand"
 	"net"
 	"os/exec"
-	"strconv"
 	"time"
 )
 
@@ -97,14 +96,14 @@ func ProcessRequest(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	conf := ctx.Value("config").(*config.Config)
+	clock := ctx.Value("clock").(Clock)
+	cache := ctx.Value("cache").(Cache)
 	switch msg.Header {
 	case protocol.Quit:
 		return nil, ErrQuit
 	case protocol.RequestChallenge:
 		log.Printf("client %s requests challenge\n", clientInfo)
-		conf := ctx.Value("config").(*config.Config)
-		clock := ctx.Value("clock").(Clock)
-		cache := ctx.Value("cache").(Cache)
 		date := clock.Now()
 
 		randValue := rand.Intn(100000)
@@ -131,13 +130,6 @@ func ProcessRequest(ctx context.Context,
 		}
 		return &msg, nil
 	case protocol.RequestResource:
-		phrase, err := Exec("fortune")
-		if err != nil {
-			return nil, err
-		}
-		phrase = bytes.Trim(phrase, "\n")
-		phrase = bytes.ReplaceAll(phrase, []byte("\n"), []byte("世界"))
-		log.Println(string(phrase))
 		log.Printf("client %s requests resource with payload %s\n", clientInfo, msg.Payload)
 		// parse client's solution
 		var hashCash pow.HashCashData
@@ -147,47 +139,56 @@ func ProcessRequest(ctx context.Context,
 		if hashCash.Resource != clientInfo {
 			return nil, fmt.Errorf("invalid hashCash resource")
 		}
-		conf := ctx.Value("config").(*config.Config)
-		clock := ctx.Value("clock").(Clock)
-		cache := ctx.Value("cache").(Cache)
 
-		randValueBytes, err := base64.StdEncoding.DecodeString(hashCash.Rand)
-		if err != nil {
-			return nil, fmt.Errorf("err decode rand: %w", err)
+		hashCash.CalcHash()
+		if !hashCash.IsHashCorrect() {
+			return nil, fmt.Errorf("hash not correct")
 		}
-		randValue, err := strconv.Atoi(string(randValueBytes))
-		if err != nil {
-			return nil, fmt.Errorf("err decode rand: %w", err)
-		}
+		//randValueBytes, err := base64.StdEncoding.DecodeString(hashCash.Rand)
+		//if err != nil {
+		//	return nil, fmt.Errorf("err decode rand: %w", err)
+		//}
+		//randValue, err := strconv.Atoi(string(randValueBytes))
+		//if err != nil {
+		//	return nil, fmt.Errorf("err decode rand: %w", err)
+		//}
+		//
+		//exists, err := cache.Get(randValue)
+		//if err != nil {
+		//	return nil, fmt.Errorf("err get rand from cache: %w", err)
+		//}
+		//if !exists {
+		//	return nil, fmt.Errorf("challenge expired or not sent")
+		//}
+		//
+		//// sent solution should not be outdated
+		//if clock.Now().Unix()-hashCash.Date > conf.HashCashDuration {
+		//	return nil, fmt.Errorf("challenge expired")
+		//}
+		////to prevent indefinite computing on server if client sent hashCash with 0 counter
+		//maxIter := hashCash.Counter
+		//if maxIter == 0 {
+		//	maxIter = 1
+		//}
+		//
+		//_, err = hashCash.ComputeHashCash(maxIter)
+		//if err != nil {
+		//	return nil, fmt.Errorf("invalid hashCash")
+		//}
+		//log.Printf("client %s succesfully computed hashCash %s\n", clientInfo, msg.Payload)
 
-		exists, err := cache.Get(randValue)
+		//get fortune
+		phrase, err := Exec("fortune")
 		if err != nil {
-			return nil, fmt.Errorf("err get rand from cache: %w", err)
+			return nil, err
 		}
-		if !exists {
-			return nil, fmt.Errorf("challenge expired or not sent")
-		}
-
-		// sent solution should not be outdated
-		if clock.Now().Unix()-hashCash.Date > conf.HashCashDuration {
-			return nil, fmt.Errorf("challenge expired")
-		}
-		//to prevent indefinite computing on server if client sent hashCash with 0 counter
-		maxIter := hashCash.Counter
-		if maxIter == 0 {
-			maxIter = 1
-		}
-		_, err = hashCash.ComputeHashCash(maxIter)
-		if err != nil {
-			return nil, fmt.Errorf("invalid hashCash")
-		}
-		//get random quote
-		log.Printf("client %s succesfully computed hashCash %s\n", clientInfo, msg.Payload)
+		phrase = bytes.Trim(phrase, "\n")
+		phrase = bytes.ReplaceAll(phrase, []byte("\n"), []byte("世界"))
+		log.Println(string(phrase))
 		msg := protocol.Message{
 			Header:  protocol.ResponseResource,
 			Payload: string(phrase),
 		}
-		cache.Delete(randValue)
 		return &msg, nil
 	default:
 		return nil, fmt.Errorf("unknown header")

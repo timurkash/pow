@@ -3,9 +3,8 @@ package pow
 import (
 	"crypto/sha256"
 	"fmt"
+	"log"
 )
-
-const zeroByte = 48
 
 type HashCashData struct {
 	Version    int
@@ -14,41 +13,54 @@ type HashCashData struct {
 	Resource   string
 	Rand       string
 	Counter    int
+	hash       []byte
 }
 
-func (h HashCashData) Stringify() string {
-	return fmt.Sprintf("%d:%d:%d:%s::%s:%d", h.Version, h.ZerosCount, h.Date, h.Resource, h.Rand, h.Counter)
+func (h *HashCashData) Stringify() []byte {
+	return []byte(fmt.Sprintf("%d:%d:%d:%s::%s:%d", h.Version, h.ZerosCount, h.Date, h.Resource, h.Rand, h.Counter))
 }
 
-func sha256Hash(data string) string {
-	h := sha256.New()
-	h.Write([]byte(data))
-	bs := h.Sum(nil)
-	return fmt.Sprintf("%x", bs)
+func sha256Hash(data []byte) []byte {
+	hash := sha256.New()
+	hash.Write(data)
+	return hash.Sum(nil)
 }
 
-func IsHashCorrect(hash string, zerosCount int) bool {
-	if zerosCount > len(hash) {
+func (h *HashCashData) CalcHash() {
+	h.hash = sha256Hash(h.Stringify())
+}
+
+func (h *HashCashData) PrintHash() {
+	if h.hash == nil {
+		log.Println("hash not calculated")
+		return
+	}
+	fmt.Printf("%x\n", h.hash)
+}
+
+func (h *HashCashData) IsHashCorrect() bool {
+	if h.hash == nil {
 		return false
 	}
-	for _, ch := range hash[:zerosCount] {
-		if ch != zeroByte {
+	if h.ZerosCount > len(h.hash) {
+		return false
+	}
+	for _, ch := range h.hash[:h.ZerosCount] {
+		if ch != 0 {
 			return false
 		}
 	}
 	return true
 }
 
-func (h HashCashData) ComputeHashCash(maxIterations int) (HashCashData, error) {
+func (h *HashCashData) ComputeHashCash(maxIterations int) (HashCashData, error) {
 	for h.Counter <= maxIterations || maxIterations <= 0 {
-		header := h.Stringify()
-		hash := sha256Hash(header)
-		//log.Println(header, hash)
-		if IsHashCorrect(hash, h.ZerosCount) {
-			return h, nil
+		h.CalcHash()
+		if h.IsHashCorrect() {
+			return *h, nil
 		}
 		// if hash don't have needed count of leading zeros, we are increasing counter and try next hash
 		h.Counter++
 	}
-	return h, fmt.Errorf("max iterations exceeded")
+	return *h, fmt.Errorf("max iterations exceeded")
 }

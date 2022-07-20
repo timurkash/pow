@@ -5,6 +5,12 @@ test:
 start-server:
 	go run cmd/server/main.go
 
+build-client:
+	go build cmd/client/main.go
+
+build-server:
+	go build cmd/server/main.go
+
 start-client:
 	go run cmd/client/main.go
 

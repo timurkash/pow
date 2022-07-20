@@ -10,22 +10,42 @@ import (
 )
 
 func TestHash(t *testing.T) {
-	result := sha256Hash("testdatalong 1231378612")
-	assert.Equal(t, "26e48dc4c6fd473c87e9c4928d8f4bd45f508603", result)
-	result = sha256Hash("super800")
-	assert.Equal(t, "a6a735584d2a32fbbd5af4cb6d9931167d7bb2db", result)
+	{
+		hash := sha256Hash([]byte("testdatalong 1231378612"))
+		assert.Equal(t,
+			"bf63f065d706e572452cb373f9c444f4feb30c04c65bb40b1dac6ae3529a7187",
+			fmt.Sprintf("%x", hash),
+		)
+	}
+	{
+		hash := sha256Hash([]byte("super800"))
+		assert.Equal(t,
+			"3b3e9ce0f2efd2631e7bfb7f6cbe4e3a48bcf494ff2ce8f11ba00494c9070ad2",
+			fmt.Sprintf("%x", hash),
+		)
+	}
 }
 
 func TestIsHashCorrect(t *testing.T) {
-	result := IsHashCorrect("0000cd3d39d4c11079d167e870dbc5873f3c9169", 4)
-	assert.True(t, result)
-	result = IsHashCorrect("0000", 5)
-	assert.False(t, result)
-	result = IsHashCorrect("00018f38327b85110de794711aa02926ae8f7f76", 4)
-	assert.False(t, result)
+	hashCashData := &HashCashData{
+		Version:    1,
+		ZerosCount: 2,
+		Date:       1658309851,
+		Resource:   "hashCash",
+		Rand:       "KAXvYYVlDs",
+		Counter:    37314,
+	}
+	hash := hashCashData.GetHash()
+	assert.Equal(t,
+		"000083a7d79d37dc901ee43273dfa412c346156fe2d556536c73c08cebcfeaca",
+		fmt.Sprintf("%x", hash),
+	)
+	assert.True(t, hashCashData.IsHashCorrect(hash))
+	hashCashData.ZerosCount = 3
+	assert.False(t, hashCashData.IsHashCorrect(hash))
 }
 
-func TestComputeHashcash(t *testing.T) {
+func TestComputeHashCash(t *testing.T) {
 	t.Parallel()
 
 	t.Run("4 zeros", func(t *testing.T) {

@@ -3,7 +3,7 @@
   "ServerPort":3333,
   "CacheHost":"localhost",
   "CachePort":6379,
-  "HashCashZerosCount":3,
+  "HashCashZerosCount":2,
   "HashCashDuration": 300,
-  "HashCashMaxIterations":1000000
+  "HashCashMaxIterations":10000000
 }

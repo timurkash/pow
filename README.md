@@ -21,5 +21,5 @@ make start
 - coz it does not involve money
 - coz easy addition of complexity
 
-Inside the SHA256 is used 
+Inside the SHA256 is used. SHA1 has vulnerabilities. 
 
