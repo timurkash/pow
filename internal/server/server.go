@@ -144,38 +144,6 @@ func ProcessRequest(ctx context.Context,
 		if !hashCash.IsHashCorrect() {
 			return nil, fmt.Errorf("hash not correct")
 		}
-		//randValueBytes, err := base64.StdEncoding.DecodeString(hashCash.Rand)
-		//if err != nil {
-		//	return nil, fmt.Errorf("err decode rand: %w", err)
-		//}
-		//randValue, err := strconv.Atoi(string(randValueBytes))
-		//if err != nil {
-		//	return nil, fmt.Errorf("err decode rand: %w", err)
-		//}
-		//
-		//exists, err := cache.Get(randValue)
-		//if err != nil {
-		//	return nil, fmt.Errorf("err get rand from cache: %w", err)
-		//}
-		//if !exists {
-		//	return nil, fmt.Errorf("challenge expired or not sent")
-		//}
-		//
-		//// sent solution should not be outdated
-		//if clock.Now().Unix()-hashCash.Date > conf.HashCashDuration {
-		//	return nil, fmt.Errorf("challenge expired")
-		//}
-		////to prevent indefinite computing on server if client sent hashCash with 0 counter
-		//maxIter := hashCash.Counter
-		//if maxIter == 0 {
-		//	maxIter = 1
-		//}
-		//
-		//_, err = hashCash.ComputeHashCash(maxIter)
-		//if err != nil {
-		//	return nil, fmt.Errorf("invalid hashCash")
-		//}
-		//log.Printf("client %s succesfully computed hashCash %s\n", clientInfo, msg.Payload)
 
 		//get fortune
 		phrase, err := Exec("fortune")

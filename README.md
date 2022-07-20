@@ -15,6 +15,7 @@ make start
 ```
 
 ## Why HashCash?
+https://ru.wikipedia.org/wiki/Hashcash
 
 - coz it is used in Bitcoin
 - cos it is popular
